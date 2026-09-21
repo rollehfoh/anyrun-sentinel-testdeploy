@@ -40,6 +40,12 @@
             "metadata":  {
                 "description":  "Enter value for Log Analytics Workspace"
             }
+        },
+        "Azure Blob Storage Account Name":  {
+            "type":  "String",
+            "metadata":  {
+                "description":  "Enter value for Azure Blob Storage Account Name"
+            }
         }
     },
     "variables":  {
