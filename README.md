@@ -233,27 +233,27 @@ This playbook makes the incident enrichment process in Microsoft Sentinel even m
 Deploy the components in the following order. Shared prerequisites (Key Vault secret `ANYRUN-APIKey`, App Registration, API permissions, role assignments, and Storage Account) are described in the [Prerequisites](#prerequisites) section above.
 
 1. Deploy the Function App (`ANYRUN-Sentinel-FA`) if you plan to analyze files.  
-   Detailed steps: [Playbooks/Sentinel-FA/readme.md](Playbooks/Sentinel-FA/README.md)
+   Detailed steps: [Playbooks/Sentinel-FA/README.md](Playbooks/Sentinel-FA/README.md)
 
 2. Deploy the child playbook `Submit-File-to-Blob` only if you need to analyze files **and** you are **not** using Microsoft Defender for Endpoint (MDE) to collect files from endpoints. It is not required for URL-only analysis or when using the Defender playbook.  
-   Detailed steps: [Playbooks/Submit-File-to-Blob/readme.md](Playbooks/Submit-File-to-Blob/README.md)
+   Detailed steps: [Playbooks/Submit-File-to-Blob/README.md](Playbooks/Submit-File-to-Blob/README.md)
 
 3. Deploy one or more of the following playbooks. Each has its own readme with the Deploy button, parameters, post-deployment steps, and screenshots:
 
    - **Sandbox-URL** — analyze URL entities.  
-     [Playbooks/Sandbox-URL/readme.md](Playbooks/Sandbox-URL/README.md)
+     [Playbooks/Sandbox-URL/README.md](Playbooks/Sandbox-URL/README.md)
 
    - **Sandbox-File-Defender** — analyze files and URLs using Microsoft Defender for Endpoint Live Response. Use this playbook if MDE is available.  
-     [Playbooks/Sandbox-File-Defender/readme.md](Playbooks/Sandbox-File-Defender/README.md)
+     [Playbooks/Sandbox-File-Defender/README.md](Playbooks/Sandbox-File-Defender/README.md)
 
    - **Sandbox-File-Windows** — analyze files from Windows endpoints (use only if MDE is not available).  
-     [Playbooks/Sandbox-File-Windows/readme.md](Playbooks/Sandbox-File-Windows/README.md)
+     [Playbooks/Sandbox-File-Windows/README.md](Playbooks/Sandbox-File-Windows/README.md)
 
    - **Sandbox-File-Ubuntu** — analyze files from Ubuntu endpoints (use only if MDE is not available).  
-     [Playbooks/Sandbox-File-Ubuntu/readme.md](Playbooks/Sandbox-File-Ubuntu/README.md)
+     [Playbooks/Sandbox-File-Ubuntu/README.md](Playbooks/Sandbox-File-Ubuntu/README.md)
 
    - **Sandbox-File-Debian** — analyze files from Debian endpoints (use only if MDE is not available).  
-     [Playbooks/Sandbox-File-Debian/readme.md](Playbooks/Sandbox-File-Debian/README.md)
+     [Playbooks/Sandbox-File-Debian/README.md](Playbooks/Sandbox-File-Debian/README.md)
 
 After deploying a playbook, authorize its API connections, assign the required roles to the managed identity, and create an Automation Rule in Microsoft Sentinel. Playbook-specific notes are in the corresponding `README.md`.
 
