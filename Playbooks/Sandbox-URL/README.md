@@ -27,7 +27,7 @@ Click below to deploy Azure Logic App with **Flex Consumption plan**
 
 Enter the parameters required for deploying the Logic App and click **Review + create**.
 
-![logic_app_deployment](Images/URL_004.png)
+![logic_app_deployment](Images/1_001.png)
 
 Description of the required parameters:
 
