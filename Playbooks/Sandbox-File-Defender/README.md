@@ -43,7 +43,7 @@ Description of the required parameters:
 | Azure Blob Storage Container Name | Container name in the storage account. |
 | Azure Blob Storage Connection String | Connection string of the storage account. |
 | Log Analytics Workspace | Log Analytics workspace name. |
-| functionAppName | Name of the deployed Function App (default `ANYRUN-Sentinel-FA`). |
+| functionAppName | Name of the deployed Function App. |
 
 ## Post-deployment
 
