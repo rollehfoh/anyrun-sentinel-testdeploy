@@ -28,7 +28,7 @@ Additional requirements for this Function App:
 
 - Enter the parameters required for deploying the Function App and click **Review + create**.
 
-![function_app_deployment](Images/081.png)
+![function_app_deployment](Images/2_001.png)
 
 - Description of the required parameters:
 
