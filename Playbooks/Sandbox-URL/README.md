@@ -58,4 +58,4 @@ Edit each connection, sign in with an account that has the required permissions,
 6. It adds a comment to the incident containing the verdict, threat score, tags, IOC table, and a link to the analysis session.
 7. Detected IOCs are uploaded to the Microsoft Sentinel Threat Intelligence portal.
 
-The URL analysis parameters are defined in the HTTP action that starts the analysis. You can adjust them (timeout, browser, OS, interactivity, etc.) in the Logic App designer or code view. See the [ANY.RUN API documentation](https://any.run/api/docs) for the full list of parameters.
+The URL analysis parameters are defined in the HTTP action that starts the analysis. You can adjust them (timeout, browser, OS, interactivity, etc.) in the Logic App designer or code view. See the [ANY.RUN API documentation](https://any.run/api-documentation/) for the full list of parameters.
