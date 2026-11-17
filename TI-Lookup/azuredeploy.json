@@ -65,12 +65,10 @@
       "kind": "V1",
       "properties": {
         "displayName": "[variables('MicrosoftSentinelConnectionName')]",
+        "customParameterValues": {},
+        "parameterValueType": "Alternative",
         "api": {
-          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
-        },
-        "parameterValueSet": {
-          "name": "managedIdentityAuth",
-          "values": {}
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Azuresentinel')]"
         }
       }
     },
@@ -82,9 +80,10 @@
       "kind": "V1",
       "properties": {
         "displayName": "[variables('KeyVaultConnectionName')]",
+        "customParameterValues": {},
         "parameterValueType": "Alternative",
         "api": {
-          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/keyvault')]"
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Keyvault')]"
         }
       }
     },
@@ -277,7 +276,7 @@
               "azuresentinel": {
                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('MicrosoftSentinelConnectionName'))]",
                 "connectionName": "[variables('MicrosoftSentinelConnectionName')]",
-                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Azuresentinel')]",
                 "connectionProperties": {
                   "authentication": {
                     "type": "ManagedServiceIdentity"
@@ -287,7 +286,7 @@
               "keyvault": {
                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('KeyVaultConnectionName'))]",
                 "connectionName": "[variables('KeyVaultConnectionName')]",
-                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/keyvault')]"
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Keyvault')]"
               }
             }
           },
