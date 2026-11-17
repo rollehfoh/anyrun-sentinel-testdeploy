@@ -286,7 +286,12 @@
               "keyvault": {
                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('KeyVaultConnectionName'))]",
                 "connectionName": "[variables('KeyVaultConnectionName')]",
-                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Keyvault')]"
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Keyvault')]",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity"
+                  }
+                }
               }
             }
           },
