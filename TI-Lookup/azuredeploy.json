@@ -65,10 +65,12 @@
       "kind": "V1",
       "properties": {
         "displayName": "[variables('MicrosoftSentinelConnectionName')]",
-        "customParameterValues": {},
-        "parameterValueType": "Alternative",
         "api": {
           "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Azuresentinel')]"
+        },
+        "parameterValueSet": {
+          "name": "managedIdentityAuth",
+          "values": {}
         }
       }
     },
@@ -80,10 +82,12 @@
       "kind": "V1",
       "properties": {
         "displayName": "[variables('KeyVaultConnectionName')]",
-        "customParameterValues": {},
-        "parameterValueType": "Alternative",
         "api": {
           "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Keyvault')]"
+        },
+        "parameterValueSet": {
+          "name": "managedIdentityAuth",
+          "values": {}
         }
       }
     },
