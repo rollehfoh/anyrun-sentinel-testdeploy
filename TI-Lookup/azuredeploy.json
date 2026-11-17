@@ -65,9 +65,12 @@
       "kind": "V1",
       "properties": {
         "displayName": "[variables('MicrosoftSentinelConnectionName')]",
-        "parameterValueType": "Alternative",
         "api": {
           "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+        },
+        "parameterValueSet": {
+          "name": "managedIdentityAuth",
+          "values": {}
         }
       }
     },
@@ -274,7 +277,12 @@
               "azuresentinel": {
                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('MicrosoftSentinelConnectionName'))]",
                 "connectionName": "[variables('MicrosoftSentinelConnectionName')]",
-                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity"
+                  }
+                }
               },
               "keyvault": {
                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('KeyVaultConnectionName'))]",
