@@ -1,0 +1,299 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "title": "ANY.RUN TI Lookup - Sentinel Incident Enrichment",
+    "description": "Enriches Microsoft Sentinel incidents with ANY.RUN Threat Intelligence Lookup results for entities (hashes, IPs, domains, URLs). Adds a comment with the main verdict based on threatLevel.",
+    "prerequisites": [
+      "ANY.RUN account with TI Lookup API key stored as a secret in Azure Key Vault",
+      "Logic App managed identity granted 'Get' secret permission on the Key Vault"
+    ],
+    "postDeployment": [
+      "1. Authorize the Microsoft Sentinel connection in the Logic App.",
+      "2. Grant the Logic App's system-assigned managed identity the Key Vault Secrets User role (or Access Policy Get on secrets).",
+      "3. Assign Microsoft Sentinel Responder role to the Logic App identity if needed for comments.",
+      "4. Attach the playbook to an Automation Rule (When incident is created/updated)."
+    ],
+    "lastUpdateTime": "2026-11-17T00:00:00.000Z",
+    "entities": ["FileHash", "IP", "Domain", "Url"],
+    "tags": ["Enrichment", "ANY.RUN", "TI Lookup"],
+    "support": {
+      "tier": "community"
+    }
+  },
+  "parameters": {
+    "PlaybookName": {
+      "type": "string",
+      "defaultValue": "ANYRUN-TI-Lookup-Incident",
+      "metadata": {
+        "description": "Name of the Logic App playbook"
+      }
+    },
+    "KeyVaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Key Vault containing the ANY.RUN API key"
+      }
+    },
+    "SecretName": {
+      "type": "string",
+      "defaultValue": "anyrun-api-key",
+      "metadata": {
+        "description": "Name of the secret in Key Vault that holds the ANY.RUN API key (format: just the key, no prefix)"
+      }
+    },
+    "LookupDepthDays": {
+      "type": "int",
+      "defaultValue": 30,
+      "minValue": 1,
+      "maxValue": 180,
+      "metadata": {
+        "description": "Depth of the TI Lookup request in days (used for startDate)"
+      }
+    }
+  },
+  "variables": {
+    "MicrosoftSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]",
+    "KeyVaultConnectionName": "[concat('keyvault-', parameters('PlaybookName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[variables('MicrosoftSentinelConnectionName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "V1",
+      "properties": {
+        "displayName": "[variables('MicrosoftSentinelConnectionName')]",
+        "parameterValueType": "Alternative",
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[variables('KeyVaultConnectionName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "V1",
+      "properties": {
+        "displayName": "[variables('KeyVaultConnectionName')]",
+        "parameterValueType": "Alternative",
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/keyvault')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('PlaybookName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "LogicAppsCategory": "security",
+        "hidden-SentinelTemplateName": "[parameters('PlaybookName')]",
+        "hidden-SentinelTemplateVersion": "1.0"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', variables('MicrosoftSentinelConnectionName'))]",
+        "[resourceId('Microsoft.Web/connections', variables('KeyVaultConnectionName'))]"
+      ],
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            },
+            "LookupDepthDays": {
+              "type": "Int",
+              "defaultValue": "[parameters('LookupDepthDays')]"
+            },
+            "SecretName": {
+              "type": "String",
+              "defaultValue": "[parameters('SecretName')]"
+            },
+            "KeyVaultName": {
+              "type": "String",
+              "defaultValue": "[parameters('KeyVaultName')]"
+            }
+          },
+          "triggers": {
+            "Microsoft_Sentinel_incident": {
+              "type": "ApiConnectionWebhook",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "body": {
+                  "callback_url": "@{listCallbackUrl()}"
+                },
+                "path": "/incident"
+              }
+            }
+          },
+          "actions": {
+            "For_each_entity": {
+              "type": "Foreach",
+              "foreach": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+              "actions": {
+                "Check_entity_type": {
+                  "type": "If",
+                  "expression": {
+                    "or": [
+                      {
+                        "equals": [
+                          "@items('For_each_entity')?['kind']",
+                          "FileHash"
+                        ]
+                      },
+                      {
+                        "equals": [
+                          "@items('For_each_entity')?['kind']",
+                          "IP"
+                        ]
+                      },
+                      {
+                        "equals": [
+                          "@items('For_each_entity')?['kind']",
+                          "Domain"
+                        ]
+                      },
+                      {
+                        "equals": [
+                          "@items('For_each_entity')?['kind']",
+                          "Url"
+                        ]
+                      }
+                    ]
+                  },
+                  "actions": {
+                    "Get_API_Key": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['keyvault']['connectionId']"
+                          }
+                        },
+                        "method": "get",
+                        "path": "/secrets/@{encodeURIComponent(parameters('SecretName'))}/value",
+                        "queries": {
+                          "api-version": "2016-10-01"
+                        }
+                      },
+                      "runAfter": {}
+                    },
+                    "Compose_Query": {
+                      "type": "Compose",
+                      "inputs": "@if(equals(items('For_each_entity')?['kind'], 'FileHash'), concat('sha256:\"', items('For_each_entity')?['properties']?['hashValue'], '\"'), items('For_each_entity')?['properties']?['address'] ?? items('For_each_entity')?['properties']?['domainName'] ?? items('For_each_entity')?['properties']?['url'])",
+                      "runAfter": {
+                        "Get_API_Key": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "Call_ANYRUN_TI_Lookup": {
+                      "type": "Http",
+                      "inputs": {
+                        "method": "POST",
+                        "uri": "https://api.any.run/v1/ti/lookup",
+                        "headers": {
+                          "Authorization": "API-Key @{body('Get_API_Key')?['value']}",
+                          "Content-Type": "application/json"
+                        },
+                        "body": {
+                          "query": "@outputs('Compose_Query')",
+                          "startDate": "@formatDateTime(addDays(utcNow(), mul(parameters('LookupDepthDays'), -1)), 'yyyy-MM-dd')",
+                          "endDate": "@formatDateTime(utcNow(), 'yyyy-MM-dd')"
+                        }
+                      },
+                      "runAfter": {
+                        "Compose_Query": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "Parse_Verdict": {
+                      "type": "Compose",
+                      "inputs": {
+                        "threatLevel": "@body('Call_ANYRUN_TI_Lookup')?['summary']?['threatLevel']",
+                        "threatName": "@join(body('Call_ANYRUN_TI_Lookup')?['threatName'], ', ')",
+                        "lastSeen": "@body('Call_ANYRUN_TI_Lookup')?['summary']?['lastSeen']",
+                        "verdict": "@if(equals(body('Call_ANYRUN_TI_Lookup')?['summary']?['threatLevel'], 2), 'Malicious', if(equals(body('Call_ANYRUN_TI_Lookup')?['summary']?['threatLevel'], 1), 'Suspicious', 'No significant threat info'))"
+                      },
+                      "runAfter": {
+                        "Call_ANYRUN_TI_Lookup": [
+                          "Succeeded"
+                        ]
+                      }
+                    },
+                    "Add_Comment_to_Incident": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "path": "/Incidents/Comment",
+                        "body": {
+                          "incidentArmId": "@triggerBody()?['object']?['id']",
+                          "message": "<h3>ANY.RUN TI Lookup Result</h3><p><strong>Entity:</strong> @{items('For_each_entity')?['kind']} - @{outputs('Compose_Query')}</p><p><strong>Verdict:</strong> @{outputs('Parse_Verdict')?['verdict']}</p><p><strong>Threat Level:</strong> @{outputs('Parse_Verdict')?['threatLevel']}</p><p><strong>Threat Names:</strong> @{outputs('Parse_Verdict')?['threatName']}</p><p><strong>Last Seen:</strong> @{outputs('Parse_Verdict')?['lastSeen']}</p><p><em>Full JSON response is available in the Logic App run history.</em></p>"
+                        }
+                      },
+                      "runAfter": {
+                        "Parse_Verdict": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  },
+                  "else": {
+                    "actions": {}
+                  }
+                }
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuresentinel": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', variables('MicrosoftSentinelConnectionName'))]",
+                "connectionName": "[variables('MicrosoftSentinelConnectionName')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+              },
+              "keyvault": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', variables('KeyVaultConnectionName'))]",
+                "connectionName": "[variables('KeyVaultConnectionName')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/keyvault')]"
+              }
+            }
+          },
+          "LookupDepthDays": {
+            "value": "[parameters('LookupDepthDays')]"
+          },
+          "SecretName": {
+            "value": "[parameters('SecretName')]"
+          },
+          "KeyVaultName": {
+            "value": "[parameters('KeyVaultName')]"
+          }
+        }
+      }
+    }
+  ]
+}
