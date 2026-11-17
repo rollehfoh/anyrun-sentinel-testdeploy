@@ -195,7 +195,7 @@
                     },
                     "Compose_Query": {
                       "type": "Compose",
-                      "inputs": "@if(equals(items('For_each_entity')?['kind'], 'FileHash'), concat('sha256:\"', items('For_each_entity')?['properties']?['hashValue'], '\"'), items('For_each_entity')?['properties']?['address'] ?? items('For_each_entity')?['properties']?['domainName'] ?? items('For_each_entity')?['properties']?['url'])",
+                      "inputs": "@if(equals(items('For_each_entity')?['kind'], 'FileHash'), concat('sha256:\"', items('For_each_entity')?['properties']?['hashValue'], '\"'), coalesce(items('For_each_entity')?['properties']?['address'], items('For_each_entity')?['properties']?['domainName'], items('For_each_entity')?['properties']?['url'], ''))",
                       "runAfter": {
                         "Get_API_Key": [
                           "Succeeded"
@@ -213,7 +213,7 @@
                         },
                         "body": {
                           "query": "@outputs('Compose_Query')",
-                          "startDate": "@formatDateTime(addDays(utcNow(), mul(parameters('LookupDepthDays'), -1)), 'yyyy-MM-dd')",
+                          "startDate": "@formatDateTime(addDays(utcNow(), mul(int(parameters('LookupDepthDays')), -1)), 'yyyy-MM-dd')",
                           "endDate": "@formatDateTime(utcNow(), 'yyyy-MM-dd')"
                         }
                       },
