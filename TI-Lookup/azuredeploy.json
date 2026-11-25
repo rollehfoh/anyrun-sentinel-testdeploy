@@ -2,23 +2,28 @@
     "$schema":  "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion":  "1.0.0.0",
     "metadata":  {
-        "title":  "",
-        "description":  "",
-        "prerequisites":  "",
+        "title":  "ANY.RUN TI Lookup - URL Enrichment - Incident Trigger",
+        "description":  "On a Microsoft Sentinel incident, enriches URL entities using ANY.RUN Threat Intelligence. Results are added as incident comments.",
+        "prerequisites":  [
+            "1. ANY.RUN API key in Key Vault secret ANYRUN-APIKey."
+        ],
         "postDeployment":  [
+            "Authorize/Configure all the connections."
         ],
         "prerequisitesDeployTemplateFile":  "",
-        "lastUpdateTime":  "",
+        "lastUpdateTime":  "2026-11-25T00:00:00.000Z",
         "entities":  [
+            "URL"
         ],
         "tags":  [
+            "Enrichment"
         ],
         "support":  {
-            "tier":  "community",
+            "tier":  "partner",
             "armtemplate":  "Generated from https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Playbook-ARM-Template-Generator"
         },
         "author":  {
-            "name":  ""
+            "name":  "ANY.RUN"
         }
     },
     "parameters":  {
@@ -159,8 +164,10 @@
                                             "Authorization":  "API-Key @{body('Get_secret_-_ANYRUN')?['value']}",
                                             "x-anyrun-connector":  "MS_Sentinel:1.0.0"
                                         },
-                                        "body":  {
-                                            "query":  "@{item()?['Url']}"
+                                        "body": {
+                                            "query": "@{item()?['Url']}",
+                                            "startDate": "@{formatDateTime(addDays(utcNow(), mul(variables('Lookup Depht'), -1)), 'yyyy-MM-dd')}",
+                                            "endDate": "@{formatDateTime(utcNow(), 'yyyy-MM-dd')}"
                                         }
                                     },
                                     "runtimeConfiguration":  {
