@@ -40,7 +40,7 @@
         },
         "Lookup Depht": {
             "defaultValue": 180,
-            "type": "integer",
+            "type": "int",
             "metadata": {
                 "description": "Enter value for Lookup Depht"
             }
@@ -74,7 +74,7 @@
                         },
                         "Lookup Depht": {
                             "defaultValue":  "[parameters('Lookup Depht')]",
-                            "type": "integer"
+                            "type": "int"
                         }
                     },
                     "triggers":  {
